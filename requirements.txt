@@ -1,0 +1,28 @@
+# Core dependencies
+streamlit
+numpy
+torch
+transformers
+sentence-transformers
+
+# LangChain ecosystem
+langchain
+langchain-core
+langchain-openai
+langchain-groq
+langchain-google-genai
+
+# Vector database and embeddings
+faiss-cpu
+
+# PDF and file processing
+PyPDF2
+
+# Utilities
+pandas
+tqdm
+
+# Optional (for local development)
+python-dotenv
+
+duckduckgo-search
