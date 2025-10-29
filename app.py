@@ -58,11 +58,11 @@ def initialize_rag_system():
 
 def instructions_page():
     """Instructions and setup page"""
-    st.title(" The Chatbot Blueprint")
+    st.title("The Chatbot Blueprint")
     st.markdown("### Welcome to the Medical Assistant Chatbot!")
     
     st.markdown("""
-    ##  What This Chatbot Can Do
+    ## What This Chatbot Can Do
     
     This intelligent chatbot combines multiple AI capabilities:
     
@@ -81,7 +81,7 @@ def instructions_page():
        - Updates knowledge beyond training data
        - Real-time medical news and research
     
-    4. **⚡ Response Modes**
+    4. ** Response Modes**
        - **Concise**: Quick, brief answers (2-3 sentences)
        - **Detailed**: Comprehensive, in-depth explanations
     
@@ -148,7 +148,7 @@ def instructions_page():
     
     ---
     
-    ##  Example Use Cases
+    ## Example Use Cases
     
     ### Medical Students
     - Upload textbooks/notes
@@ -195,7 +195,7 @@ def instructions_page():
     
     ---
     
-    ## Ready to Start?
+    ##  Ready to Start?
     
     Navigate to the **Chat** page using the sidebar and start exploring!
     """)
@@ -203,7 +203,7 @@ def instructions_page():
 
 def chat_page():
     """Main chat interface page with all features"""
-    st.title(" Medical Assistant Chatbot")
+    st.title("Medical Assistant Chatbot")
     
     # Sidebar Configuration
     with st.sidebar:
@@ -217,12 +217,30 @@ def chat_page():
             help="Select which AI provider to use"
         )
         
-        # API Key Input
-        api_key = st.text_input(
-            f"{provider} API Key:",
-            type="password",
-            help=f"Enter your {provider} API key"
-        )
+        # API Key Input - Try to load from secrets first
+        from config.config import GROQ_API_KEY, GOOGLE_API_KEY, OPENAI_API_KEY
+        
+        # Map provider to secret keys
+        provider_keys = {
+            "groq": GROQ_API_KEY,
+            "google": GOOGLE_API_KEY,
+            "openai": OPENAI_API_KEY
+        }
+        
+        # Check if key exists in secrets
+        secret_key = provider_keys.get(provider.lower(), "")
+        
+        if secret_key:
+            # Use key from secrets
+            api_key = secret_key
+            st.sidebar.success(f"{provider} configured from secrets!")
+        else:
+            # Ask user to enter manually if no secret found
+            api_key = st.text_input(
+                f"{provider} API Key:",
+                type="password",
+                help=f"Enter your {provider} API key"
+            )
         
         st.divider()
         
@@ -300,7 +318,9 @@ def chat_page():
     try:
         if api_key:
             chat_model = get_model(provider.lower(), api_key)
-            st.sidebar.success(f"{provider} model loaded!")
+            # Don't show success message again if already shown from secrets
+            if not secret_key:
+                st.sidebar.success(f"{provider} model loaded!")
         else:
             st.warning(" Please enter an API key in the sidebar to start chatting.")
             st.info(" Select a provider and enter your API key on the left")
@@ -316,7 +336,7 @@ def chat_page():
     # Display chat messages
     for message in st.session_state.messages:
         avatar = "🩺" if message["role"] == "assistant" else "👤"
-        with st.chat_message(message["role"], avatar=avatar):
+        with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
     # Chat input
@@ -325,11 +345,11 @@ def chat_page():
         st.session_state.messages.append({"role": "user", "content": prompt})
         
         # Display user message
-        with st.chat_message("user", avatar="👤"):
+        with st.chat_message("user"):
             st.markdown(prompt)
         
         # Generate and display bot response
-        with st.chat_message("assistant", avatar="🩺"):
+        with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 rag_context = ""
                 search_context = ""
@@ -384,7 +404,7 @@ def main():
     
     # Navigation
     with st.sidebar:
-        st.title("Medical Assistant")
+        st.title(" Medical Assistant")
         page = st.radio(
             "Navigate:",
             ["Chat", "Instructions"],
